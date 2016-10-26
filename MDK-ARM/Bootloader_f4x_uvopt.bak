@@ -228,10 +228,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>29</ColumnNumber>
+      <ColumnNumber>8</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>75</TopLine>
-      <CurrentLine>129</CurrentLine>
+      <TopLine>132</TopLine>
+      <CurrentLine>150</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\user\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>

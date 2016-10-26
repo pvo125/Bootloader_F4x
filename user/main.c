@@ -7,8 +7,10 @@
 #define FLASHFIRM_W_BASE 	0x080004000	//sector1			firmware work base
 #define FLASHFIRM_U_BASE 	0x080800000	//sector12		firmware update base
 
-#define NAMBER_SECT_W			1						//	номер рабочего сектора флэш
-#define NAMBER_SECT_U			8						//	номер update	 сектора флэш
+#define NAMBER_SECT_W			1						//	первый work сектор 				1
+																			//  последний work сектор   	7
+#define NAMBER_SECT_U			8						//	первый update	 сектор 		8
+#define NAMBER_SECT_U_END 12					//  последний update сектор		11
 
 const uint32_t crc32_table[256]=
 {	
@@ -97,7 +99,7 @@ int main (void) {
 	uint32_t temp,bin_size,crc;
 	 uint8_t i;
 	
-	//void(*pApplication)(void);		// указатель на функцию запуска приложения
+	void(*pApplication)(void);		// указатель на функцию запуска приложения
 			
 	/*
 	0x0800 0000 - 0x0800 0400  загрузчик	1 сектор флэш 
@@ -147,13 +149,37 @@ int main (void) {
 						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
 					}
 					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
-				
-		}
-		
-		
+					
+					/*  Запись обновленной прошивки с адреса FLASHFIRM_U_BASE+4 в FLASHFIRM_W_BASE */
+					
+					FLASH->CR |=FLASH_CR_PG;
+					FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
+					for(i=0;i<(bin_size/4+1);i++)
+					{
+						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
+						*(uint32_t*)(FLASHFIRM_W_BASE+i)=*(uint32_t*)(FLASHFIRM_U_BASE+4+i);
+					
+					}
+					FLASH->CR &= ~FLASH_CR_PG;
+					
+				/* Стирание секторов c  NAMBER_SECT_U до NAMBER_SECT_U_END-1  */
+					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+					for(i=NAMBER_SECT_U;i<NAMBER_SECT_U_END;i++)
+					{
+						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}
+						FLASH->CR &= ~(FLASH_CR_SNB<<3);											// очистим биты SNB[3:7] 
+						FLASH->CR|=(uint32_t)(i<<3);													// запишем номер сектора для erase
+						FLASH->CR |=FLASH_CR_STRT;														// запуск очистки заданного сектора
+						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
+					}
+					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+		}	
 	}
-
-
+	/* Передвинем таблицу векторов на FLASHBOOT_SIZE */	
+		SCB->VTOR=FLASHBOOT_SIZE;
+		pApplication=(void(*)(void))*(__IO uint32_t*)(FLASHFIRM_W_BASE+4);
+		__set_MSP(*(__IO uint32_t*)FLASHFIRM_W_BASE);
+		pApplication();
 }
 
 
