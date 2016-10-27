@@ -93,8 +93,39 @@ uint32_t crc32_check(const uint8_t *buff,uint32_t count){
 	return crc^0xffffffff;
 
 }
+void Flash_unlock(void){
 
+	FLASH->KEYR=0x45670123;
+	FLASH->KEYR=0xCDEF89AB;
+}
+void Flash_sect_erase(uint8_t numsect,uint8_t count){
+	uint8_t i;
+	
+	FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+	for(i=numsect;i<numsect+count;i++)
+		{
+			while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}
+			FLASH->CR &= ~(FLASH_CR_SNB<<3);											// очистим биты SNB[3:7] 
+			FLASH->CR|=(uint32_t)(i<<3);													// запишем номер сектора для erase
+			FLASH->CR |=FLASH_CR_STRT;														// запуск очистки заданного сектора
+			while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
+		}
+	FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+}
 
+void Flash_prog(uint32_t *src,uint32_t *dst,uint32_t nbyte){
+	uint32_t i;
+	
+	FLASH->CR |=FLASH_CR_PG;
+	FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
+	for(i=0;i<(nbyte/4+1);i++)
+	{
+		while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
+		*(dst+i)=*(src+i);
+	}
+	FLASH->CR &= ~FLASH_CR_PG;
+
+}
 int main (void) {
 	uint32_t temp,bin_size,crc;
 	 uint8_t i;
@@ -136,43 +167,18 @@ int main (void) {
 					/* Подготовим flash для стирания и программирования */
 			
 					// Для доступа к FLASH->CR	
-					FLASH->KEYR=0x45670123;
-					FLASH->KEYR=0xCDEF89AB;
+				Flash_unlock();
+			
 			/* Стирание секторов для записи  в рабочую часть флэш	*/
-				FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
-				for(i=NAMBER_SECT_W;i<NAMBER_SECT_U;i++)
-					{
-						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}
-						FLASH->CR &= ~(FLASH_CR_SNB<<3);											// очистим биты SNB[3:7] 
-						FLASH->CR|=(uint32_t)(i<<3);													// запишем номер сектора для erase
-						FLASH->CR |=FLASH_CR_STRT;														// запуск очистки заданного сектора
-						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
-					}
-					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
-					
-					/*  Запись обновленной прошивки с адреса FLASHFIRM_U_BASE+4 в FLASHFIRM_W_BASE */
-					
-					FLASH->CR |=FLASH_CR_PG;
-					FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
-					for(i=0;i<(bin_size/4+1);i++)
-					{
-						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
-						*(uint32_t*)(FLASHFIRM_W_BASE+i)=*(uint32_t*)(FLASHFIRM_U_BASE+4+i);
-					
-					}
-					FLASH->CR &= ~FLASH_CR_PG;
-					
+				Flash_sect_erase(NAMBER_SECT_W,7);
+			
+			/*  Запись обновленной прошивки с адреса FLASHFIRM_U_BASE+4 в FLASHFIRM_W_BASE */
+				Flash_prog((uint32_t*)(FLASHFIRM_U_BASE+4),(uint32_t*)FLASHFIRM_W_BASE,bin_size);	
+									
 				/* Стирание секторов c  NAMBER_SECT_U до NAMBER_SECT_U_END-1  */
-					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
-					for(i=NAMBER_SECT_U;i<NAMBER_SECT_U_END;i++)
-					{
-						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}
-						FLASH->CR &= ~(FLASH_CR_SNB<<3);											// очистим биты SNB[3:7] 
-						FLASH->CR|=(uint32_t)(i<<3);													// запишем номер сектора для erase
-						FLASH->CR |=FLASH_CR_STRT;														// запуск очистки заданного сектора
-						while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
-					}
-					FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+				Flash_sect_erase(NAMBER_SECT_U,4);
+					
+				
 		}	
 	}
 	/* Передвинем таблицу векторов на FLASHBOOT_SIZE */	
