@@ -1,5 +1,5 @@
 #include "stm32f4xx.h"
-
+#include "MX25L8005.h"
 
 #define FLASHBOOT_BASE	0x080000000		//sector 0
 #define FLASHBOOT_SIZE	0x4000				// 16 kB
@@ -126,18 +126,33 @@ void Flash_prog(uint32_t *src,uint32_t *dst,uint32_t nbyte){
 	FLASH->CR &= ~FLASH_CR_PG;
 
 }
+
 int main (void) {
 	uint32_t temp,bin_size,crc;
-	 uint8_t i;
-	
+	uint8_t i;
 	void(*pApplication)(void);		// указатель на функцию запуска приложения
 			
+	MX25_LowLevel_Init();
+	
+	/*По адресу 0x20000 (2 ой сектора spi-flash) читаем 4 байта 0x20000 = 0xAB
+																															0x20001-0x20003 размер бинарника в байтах	*/
+	Read_MX25L(0x20000,4,(uint8_t*)&temp);
+	if((uint8_t)temp==0xAB)					// установлен флаг update ?
+		{
+			bin_size=temp>>8;			//		сохраним размер прошивки
+	
+	
+	
+	
+		}		
+		
 	/*
 	0x0800 0000 - 0x0800 0400  загрузчик	1 сектор флэш 
 	0x0800 4000 - 0x0807 FFFF		firmware work 	( max 495 kB)
 	0x0808 0000 - 0x080F FFFF		firmware update ( max 495 kB)
 	
 	*/ 
+	
 	
 	/*1 загрузчик должен проверить флаг во флэши.  Если установлен то: 
 		{	
