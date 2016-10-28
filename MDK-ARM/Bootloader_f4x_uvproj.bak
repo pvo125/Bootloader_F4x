@@ -362,7 +362,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates;..\Libraries\STM32F4xx_StdPeriph_Driver\src;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\user</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates;..\Libraries\STM32F4xx_StdPeriph_Driver\src;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\user;..\user\MX25</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -429,6 +429,36 @@
               <FileName>stm32f4xx_conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\user\stm32f4xx_conf.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>StdPeriph_Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32f4xx_gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_rcc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_rcc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_spi.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MX25L8005</GroupName>
+          <Files>
+            <File>
+              <FileName>mx25l8005.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\MX25\mx25l8005.c</FilePath>
             </File>
           </Files>
         </Group>
