@@ -453,12 +453,12 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>MX25L8005</GroupName>
+          <GroupName>bxCAN</GroupName>
           <Files>
             <File>
-              <FileName>mx25l8005.c</FileName>
+              <FileName>CAN.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\MX25\mx25l8005.c</FilePath>
+              <FilePath>..\user\bxCAN\CAN.c</FilePath>
             </File>
           </Files>
         </Group>

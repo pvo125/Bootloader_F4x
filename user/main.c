@@ -1,16 +1,18 @@
 #include "stm32f4xx.h"
 #include "MX25L8005.h"
 
-#define FLASHBOOT_BASE	0x080000000		//sector 0
-#define FLASHBOOT_SIZE	0x4000				// 16 kB
 
-#define FLASHFIRM_W_BASE 	0x080004000	//sector1			firmware work base
-#define FLASHFIRM_U_BASE 	0x080800000	//sector12		firmware update base
+#define FLASHBOOT_SIZE	0x8000				// 32 kB
 
-#define NAMBER_SECT_W			1						//	первый work сектор 				1
-																			//  последний work сектор   	7
-#define NAMBER_SECT_U			8						//	первый update	 сектор 		8
-#define NAMBER_SECT_U_END 12					//  последний update сектор		11
+#define FLASHBOOT_SECTOR		0x080000000		//sector 0
+#define FLAG_STATUS_SECTOR	0x08004000		//sector 1	
+#define FIRM_WORK_SECTOR 		0x080008000			//sector2			firmware work base
+#define FIRM_UPD_SECTOR 		0x080800000			//sector12		firmware update base
+
+#define NAMBER_WORK_SECTOR			2						//	первый work сектор 				2
+																						//  последний work сектор   	7
+#define NAMBER_UPD_SECTOR				8						//	первый update	 сектор 		8
+#define NAMBER_SECT_U_END 			12					//  последний update сектор		11
 
 const uint32_t crc32_table[256]=
 {	
@@ -101,7 +103,7 @@ void Flash_unlock(void){
 void Flash_sect_erase(uint8_t numsect,uint8_t count){
 	uint8_t i;
 	
-	FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+	FLASH->CR |=FLASH_CR_SER;																	//  установим флаг  очистки сектора
 	for(i=numsect;i<numsect+count;i++)
 		{
 			while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}
@@ -110,97 +112,144 @@ void Flash_sect_erase(uint8_t numsect,uint8_t count){
 			FLASH->CR |=FLASH_CR_STRT;														// запуск очистки заданного сектора
 			while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY)	{}		// ожидание готовности
 		}
-	FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
+	FLASH->CR &= ~FLASH_CR_SER;																	// сбросим  флаг  очистки сектора
 }
 
-void Flash_prog(uint32_t *src,uint32_t *dst,uint32_t nbyte){
+void Flash_prog(uint8_t * src,uint8_t * dst,uint32_t nbyte,uint8_t psize){
 	uint32_t i;
 	
-	FLASH->CR |=FLASH_CR_PG;
-	FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
-	for(i=0;i<(nbyte/4+1);i++)
-	{
-		while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
-		*(dst+i)=*(src+i);
+	switch(psize){
+		case 1:
+			FLASH->CR &= ~FLASH_CR_PSIZE;			// 00 program x8
+			FLASH->CR |=FLASH_CR_PG;
+			for(i=0;i<(nbyte+4);i++)
+			{
+				while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
+				*(uint8_t*)(dst+i)=*(uint8_t*)(src+i);
+				
+			}
+		break;
+		case 2:
+			FLASH->CR |= FLASH_CR_PSIZE_0;			// 01 program x16
+			FLASH->CR |=FLASH_CR_PG;	
+			for(i=0;i<(nbyte+4)/2+1;i++)
+			{
+				while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
+				*(uint16_t*)(dst+i)=*(uint16_t*)(src+i);
+			}
+		break;
+		case 4:
+			FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
+			FLASH->CR |=FLASH_CR_PG;	
+			for(i=0;i<(nbyte+4)/4+1;i++)
+			{
+				while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
+				*(uint32_t*)(dst+i)=*(uint32_t*)(src+i);
+			}
+		break;	
 	}
+		
 	FLASH->CR &= ~FLASH_CR_PG;
 
 }
 
 int main (void) {
-	uint32_t temp,bin_size,crc;
-	uint8_t i;
+	uint32_t bin_size,crc;
+	uint8_t flag;
+	uint16_t count;
 	void(*pApplication)(void);		// указатель на функцию запуска приложения
 			
-	MX25_LowLevel_Init();
+	//MX25_LowLevel_Init();
 	
 	/*По адресу 0x20000 (2 ой сектора spi-flash) читаем 4 байта 0x20000 = 0xAB
 																															0x20001-0x20003 размер бинарника в байтах	*/
-	Read_MX25L(0x20000,4,(uint8_t*)&temp);
-	if((uint8_t)temp==0xAB)					// установлен флаг update ?
-		{
-			bin_size=temp>>8;			//		сохраним размер прошивки
-	
-	
-	
-	
-		}		
+	//Read_MX25L(0x20000,4,(uint8_t*)&temp);
 		
 	/*
-	0x0800 0000 - 0x0800 0400  загрузчик	1 сектор флэш 
-	0x0800 4000 - 0x0807 FFFF		firmware work 	( max 495 kB)
-	0x0808 0000 - 0x080F FFFF		firmware update ( max 495 kB)
+	0x0800 0000 - 0x0800 3FFF   загрузчик						1 сектор флэш
+	0x0800 4000 - 0x0800 7FFF		сектор FLAG_STATUS	2 сектор флэш	
+	0x0800 8000 - 0x0807 FFFF		firmware work 	( max 480*1024 B)
+	0x0808 0000 - 0x080F FFFF		firmware update ( max 512*1024 B)
 	
 	*/ 
 	
-	
-	/*1 загрузчик должен проверить флаг во флэши.  Если установлен то: 
+	/*
+				Загрузчик должен проверить флаг в секторе FLAG_STATUS во флэши.  
+		Если установлен в 0xA7:
 		{	
 			* проверить crc обновленной прошивки во второй половине флэш
-			*	переписать новую часть во второй половине флэш в первую(рабочую) 
-			* сбросить флаг во флэш
+			*	переписать со второй половины флэш в первую(рабочую) 
+			* записать в сектор FLAG_STATUS флаг 0xA3 
 			* сделать reset для запуска обновленной прошивки из первой половины флэш
+		}
+		Если установлен в 0xA3:
+		{
+			* Передвинуть таблицу векторов на FLASHBOOT_SIZE 		(0x8000)
+			* Установить указатель стэка SP на FLASHFIRM_W_BASE (0x080008000)
+			* Запустить функцию (приложение ) по указателю FIRM_WORK_SECTOR+4
 		}
 		Иначе
 		{	
-		* запустить рабочую прошивку с первой половины флэш
-	
-		}*/
-	// проверим флаг во флэш.
-	temp=*(uint32_t*)(FLASHFIRM_U_BASE+4+0x1C);   // значение по адресу (update base+4(байта для размера бинарника)+0x1c) должно быть равно 0x12345678
-	if(temp==0x12345678)	
-	{		// установлен флаг обновления firmware равный 0x12345678
-		// по адресу FLASHFIRM_U_BASE считаем значение которое равно размеру прошивки в байтах-4(в конце для crc32)
-		bin_size=(*(uint32_t*)FLASHFIRM_U_BASE)-4;
+			* Настроить периферию для работы CAN модуля.
+			* Ожидать приема прошивки по CAN сети.
+			* Записать принять прошивку по сети во вторую половину флэш
+			*	проверить crc обновленной прошивки во второй половине флэш
+			*	переписать со второй половины флэш в первую(рабочую) 
+			* записать в сектор FLAG_STATUS флаг 0xA3 
+			* сделать reset для запуска обновленной прошивки из первой половины флэш
+		}
 		
-		crc=crc32_check((const uint8_t*)(FLASHFIRM_U_BASE+4),bin_size);
+		*/
+		
+		// проверим флаг  в секторе FLAG_STATUS во флэш.
+	
+	
+	count=1;
+	while(*(uint8_t*)(FLAG_STATUS_SECTOR+count)!=0xFF)		// Перебираем байты пока не дойдем до неписанного поля 0xFF 
+			count++;
+	flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
+	
+	if(flag==0xA7)	
+	{		// установлен флаг обновления firmware равный 0xA7
+		// по адресу FIRM_UPD_SECTOR+0x1C считаем 4 байта размера прошивки 
+		bin_size=*((uint32_t*)(FIRM_UPD_SECTOR+0x1C));
+		
+		crc=crc32_check((const uint8_t*)FIRM_UPD_SECTOR,bin_size);
 		/* Сравниваем полученный crc c тем что пришел с файлом прошивки */
-		if(*(uint32_t*)(FLASHFIRM_U_BASE+4+bin_size)==crc)
+		if(*(uint32_t*)(FIRM_UPD_SECTOR+bin_size)==crc)
 		{
-			/*	Копируем проверенную прошивку в рабочую часть flash  по адресу FLASHFIRM_W_BASE */
-			
-					/* Подготовим flash для стирания и программирования */
-			
-					// Для доступа к FLASH->CR	
+			//Копируем проверенную прошивку в рабочую часть flash  по адресу FIRM_WORK_SECTOR 
+				// Подготовим flash для стирания и программирования 
+			 // Для доступа к FLASH->CR	
 				Flash_unlock();
-			
-			/* Стирание секторов для записи  в рабочую часть флэш	*/
-				Flash_sect_erase(NAMBER_SECT_W,7);
-			
-			/*  Запись обновленной прошивки с адреса FLASHFIRM_U_BASE+4 в FLASHFIRM_W_BASE */
-				Flash_prog((uint32_t*)(FLASHFIRM_U_BASE+4),(uint32_t*)FLASHFIRM_W_BASE,bin_size);	
-									
-				/* Стирание секторов c  NAMBER_SECT_U до NAMBER_SECT_U_END-1  */
-				Flash_sect_erase(NAMBER_SECT_U,4);
-					
-				
+			 // Стирание секторов для записи  в рабочую часть флэш (со 2 по 7)	
+				Flash_sect_erase(NAMBER_WORK_SECTOR,7);
+			 // Запись обновленной прошивки с адреса FIRM_UPD_SECTOR в FIRM_WORK_SECTOR 
+				Flash_prog((uint8_t*)FIRM_UPD_SECTOR,(uint8_t*)FIRM_WORK_SECTOR,bin_size,4);	
+			 ///* Стирание секторов c  NAMBER_SECT_U до NAMBER_SECT_U_END-1  */
+			 //Flash_sect_erase(NAMBER_SECT_U,4);
+			// Запишем в сектор FLAG_STATUS флаг 0xA3 по адресу  (FLAG_STATUS_SECTOR+count) стирать предварительно не будем так как там 0xFF
+			flag=0xA3;	
+			Flash_prog((void*)&flag,(void*)(FLAG_STATUS_SECTOR+count),1,1);	// 1 байт в режиме x8
+			// Сделаем RESET 
+			NVIC_SystemReset();
 		}	
 	}
-	/* Передвинем таблицу векторов на FLASHBOOT_SIZE */	
+	else if(flag==0xA3)
+	{	
+	// Передвинем таблицу векторов на FLASHBOOT_SIZE 	
 		SCB->VTOR=FLASHBOOT_SIZE;
-		pApplication=(void(*)(void))*(__IO uint32_t*)(FLASHFIRM_W_BASE+4);
-		__set_MSP(*(__IO uint32_t*)FLASHFIRM_W_BASE);
+		pApplication=(void(*)(void))*(__IO uint32_t*)(FIRM_WORK_SECTOR+4);
+		__set_MSP(*(__IO uint32_t*)FIRM_WORK_SECTOR);
 		pApplication();
+	}
+	else
+	{
+	
+	
+	}
+	
+	
 }
 
 

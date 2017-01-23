@@ -453,14 +453,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>MX25L8005</GroupName>
-          <Files>
-            <File>
-              <FileName>mx25l8005.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\MX25\mx25l8005.c</FilePath>
-            </File>
-          </Files>
+          <GroupName>bxCAN</GroupName>
         </Group>
       </Groups>
     </Target>
