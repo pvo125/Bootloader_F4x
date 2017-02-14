@@ -203,21 +203,44 @@ uint8_t checkflash_erase(uint32_t start_addr,uint32_t byte){
 ***********************************************************************************************/
 void Bootloader_upd_firmware(uint16_t count){
 
-	uint8_t flag;
+	uint8_t flag,n;
 	
 		bxCAN_Init();
 		// отправляем запрос по сети на выдачу прошивки
-		CAN_Data_TX.ID=(NETNAME_INDEX<<8)|0x74;						// 0x174 GET_FIRMWARE			
-		CAN_Data_TX.DLC=1;
-		CAN_Data_TX.Data[0]=NETNAME_INDEX;
-		CAN_Transmit_DataFrame(&CAN_Data_TX);
-		get_firmware_size=1;
-		while(get_firmware_size) {}									// взводим флаг и ждем когда master пришдет свой запрос с данными размера прошивки 
+	
+	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
+		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
+		SysTick->CTRL |=SysTick_CTRL_ENABLE_Msk;
 		
+		get_firmware_size=1;										// взводим флаг и ждем когда master пришдет свой запрос с данными размера прошивки 
+	
+		while(get_firmware_size) 
+		{			
+			CAN_Data_TX.ID=(NETNAME_INDEX<<8)|0x74;						// 0x174 GET_FIRMWARE			
+			CAN_Data_TX.DLC=1;
+			CAN_Data_TX.Data[0]=NETNAME_INDEX;
+			CAN_Transmit_DataFrame(&CAN_Data_TX);
+			
+			
+			SysTick->LOAD=(2500000*6);
+			SysTick->VAL=0;
+			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
+		}
 		Flash_unlock();
-		if(checkflash_erase(FIRM_WORK_SECTOR,size_firmware))
-				Flash_sect_erase(NAMBER_WORK_SECTOR,6);		// Очистим 2,3,4,5,6,7... сектора 
-		
+		// Проверка flash на стертость
+		if(checkflash_erase(FIRM_WORK_SECTOR,size_firmware))	
+			{	// Если секторы не чистые (0xFF) 
+				if(size_firmware<=96*1024)		
+				n=3;															// размер <= 96K стираем только 2,3,4 секторы 
+			else if(size_firmware<=224*1024)
+				n=4;															// размер <= 224K стираем только 2,3,4,5 секторы 
+			else if(size_firmware<=352*1024)	
+				n=5;															// размер <= 352K стираем только 2,3,4,5,6 секторы 
+			else
+				n=6;															// размер <= 480K стираем только 2,3,4,5,6,7 секторы
+			
+			Flash_sect_erase(NAMBER_WORK_SECTOR,n);		// Очистим n секторов 
+		}
 		CAN_Data_TX.ID=(NETNAME_INDEX<<8)|0x72;
 		CAN_Data_TX.DLC=2;
 		CAN_Data_TX.Data[0]=NETNAME_INDEX;
@@ -322,13 +345,13 @@ int main (void) {
 				pApplication();
 			}
 		else
-			{
+			{// Иначе настраиваем интерфейс CAN и ждем прошивку по сети.
 				Bootloader_upd_firmware(count);
 			}
 	}
 	else
 	{
-		// Иначе настраиваем интерфейс CAN и ждем прошивку по сети.
+		//Если CRC прошивки не совпадает с подсчитанной настраиваем интерфейс CAN и ждем прошивку по сети.
 		Bootloader_upd_firmware(count);
 		
 	}
