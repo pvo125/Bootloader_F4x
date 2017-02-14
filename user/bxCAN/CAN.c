@@ -33,7 +33,6 @@ void bxCAN_Init(void){
 		
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB	 ,ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 	/*Включаем тактирование CAN в модуле RCC*/	
 	RCC->APB1ENR|=RCC_APB1ENR_CAN1EN;
 	/*Настройка выводов CAN  CAN1_TX=PB9   CAN1_RX=PB8  */

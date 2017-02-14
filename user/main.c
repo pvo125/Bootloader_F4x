@@ -1,4 +1,5 @@
 #include "stm32f4xx.h"
+//#include "stm32f429.h"
 #include "CAN.h"
 
 
@@ -204,10 +205,23 @@ uint8_t checkflash_erase(uint32_t start_addr,uint32_t byte){
 void Bootloader_upd_firmware(uint16_t count){
 
 	uint8_t flag,n;
+	GPIO_InitTypeDef GPIO_InitStruct;
 	
 		bxCAN_Init();
-		// отправляем запрос по сети на выдачу прошивки
+		
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF	 ,ENABLE);
 	
+	// PF7 выход push-pull без подтяжки для моргания светодиодом
+		GPIO_InitStruct.GPIO_Pin=GPIO_Pin_7;
+		GPIO_InitStruct.GPIO_Mode=GPIO_Mode_OUT;
+		GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
+		GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_NOPULL;
+		GPIO_InitStruct.GPIO_Speed=GPIO_Low_Speed;
+		GPIO_Init(GPIOF,&GPIO_InitStruct);	
+	
+	
+	// отправляем запрос по сети на выдачу прошивки
+		
 	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
 		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
 		SysTick->CTRL |=SysTick_CTRL_ENABLE_Msk;
@@ -221,11 +235,17 @@ void Bootloader_upd_firmware(uint16_t count){
 			CAN_Data_TX.Data[0]=NETNAME_INDEX;
 			CAN_Transmit_DataFrame(&CAN_Data_TX);
 			
+			if(GPIOF->IDR & GPIO_IDR_IDR_7)
+				GPIOF->BSRRH=GPIO_BSRR_BS_7;
+			else
+				GPIOF->BSRRL=GPIO_BSRR_BS_7;
 			
 			SysTick->LOAD=(2500000*6);
 			SysTick->VAL=0;
 			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
 		}
+		GPIOF->BSRRH=GPIO_BSRR_BS_7;
+		
 		Flash_unlock();
 		// Проверка flash на стертость
 		if(checkflash_erase(FIRM_WORK_SECTOR,size_firmware))	
