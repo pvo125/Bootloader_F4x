@@ -188,12 +188,12 @@ void Flash_prog(uint8_t * src,uint8_t * dst,uint32_t nbyte,uint8_t psize){
 *			Функция проверки флэш на стертость возвращает 0 если флэш стерта и 1 если проверка на чистоту не прошла
 ***********************************************************************************************/
 uint8_t checkflash_erase(uint32_t start_addr,uint32_t byte){
-	uint32_t count;
+	uint32_t i=0;
 	
-	while(*(uint32_t*)(start_addr+count)==0xFFFFFFFF)
+	while((*(uint32_t*)(start_addr+i))==0xFFFFFFFF)
 	{
-		count+=4;
-		if(count>=byte)
+		i+=4;
+		if(i>=byte)
 			return 0;
 	}
 	return 1;
@@ -321,8 +321,15 @@ int main (void) {
 	// проверим флаг  в секторе FLAG_STATUS во флэш.
 	count=1;
 	while(*(uint8_t*)(FLAG_STATUS_SECTOR+count)!=0xFF)		// Перебираем байты пока не дойдем до неписанного поля 0xFF 
-			count++;
-	flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
+	{
+		count++;
+		if(count>=0x4000)
+		{
+			break;
+			
+		}
+	}
+		flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
 	
 	if(flag==0xA7)	
 	{		// установлен флаг обновления firmware равный 0xA7
