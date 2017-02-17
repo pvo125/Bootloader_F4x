@@ -5,7 +5,7 @@ CANTX_TypeDef CAN_Data_TX;
 CANRX_TypeDef CAN_Data_RX[2];
 
 extern volatile uint8_t get_firmware_size;
-volatile uint32_t count;
+volatile uint32_t countbytes;
 volatile int size_firmware;
 volatile uint8_t write_flashflag=0;
 
@@ -21,7 +21,7 @@ volatile uint8_t write_flashflag=0;
 #define NETNAME_INDEX  01   //Core4X9I 
 
 extern const uint32_t crc32_table[];
-uint32_t crc32_check(const uint8_t *buff,uint32_t count);
+uint32_t crc32_check(const uint8_t *buff,uint32_t nbytes);
 
 
 /****************************************************************************************************************
@@ -69,7 +69,7 @@ void bxCAN_Init(void){
 	CAN1->MCR|=CAN_MCR_ABOM;		// Контроллер выходит из состояния «Bus-Off» автоматически 
 	CAN1->MCR&=~CAN_MCR_TTCM;
 	CAN1->MCR&=~CAN_MCR_AWUM;
-	CAN1->MCR|=CAN_MCR_NART;			// автоматич. ретрансляция отключена
+	CAN1->MCR&=~CAN_MCR_NART;			// автоматич. ретрансляция включена
 	CAN1->MCR&=~CAN_MCR_RFLM;
 	CAN1->MCR&=~CAN_MCR_TXFP;	
 	/*Тестовый режиим работы выключен CAN  SILM=0  LBKM=0 */
@@ -272,7 +272,7 @@ void CAN_RXProcess1(void){
 		// * разблокировать flash 
 		// * стереть сектора второй половины flash 
 		// * отправить подтверждение по CAN GET_DATA
-		count=0;
+		countbytes=0;
 		size_firmware=0;
 		size_firmware=CAN_Data_RX[1].Data[0];
 		size_firmware|=CAN_Data_RX[1].Data[1]<<8;
@@ -283,27 +283,27 @@ void CAN_RXProcess1(void){
 		
 		break;		
 		case 6:	//(id=273 SET_DATA_FIRMWARE)
-			if((size_firmware-count)>=8)
+			if((size_firmware-countbytes)>=8)
 			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+count),2,4);		
-				count+=8;
+				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),2,4);		
+				countbytes+=8;
 				CAN_Data_TX.ID=(NETNAME_INDEX<<8)|0x72;
 				CAN_Data_TX.DLC=2;
 				CAN_Data_TX.Data[0]=NETNAME_INDEX;
 				CAN_Data_TX.Data[1]='g';								// GET_DATA!
 				CAN_Transmit_DataFrame(&CAN_Data_TX);	
 			}
-			else if((size_firmware-count)!=4)
+			else if((size_firmware-countbytes)!=4)
 			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+count),((size_firmware-count)/4+1),4);
-				count+=(size_firmware-count);
+				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),((size_firmware-countbytes)/4+1),4);
+				countbytes+=(size_firmware-countbytes);
 			}
-			else if((size_firmware-count)==4)
+			else if((size_firmware-countbytes)==4)
 			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+count),1,4);
-				count+=4;
+				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),1,4);
+				countbytes+=4;
 			}				
-			if(size_firmware==count)	
+			if(size_firmware==countbytes)	
 			{
 				
 				crc=crc32_check((const uint8_t*)FIRM_WORK_SECTOR,(size_firmware-4));

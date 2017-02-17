@@ -96,10 +96,10 @@ const uint32_t crc32_table[256]=
 /**********************************************************************************************
 *																	CRC32 checksum
 ***********************************************************************************************/
-uint32_t crc32_check(const uint8_t *buff,uint32_t count){
+uint32_t crc32_check(const uint8_t *buff,uint32_t nbytes){
 
 	uint32_t crc=0xffffffff;
-	while(count--)
+	while(nbytes--)
 		crc=(crc>>8)^crc32_table[(crc^*buff++) & 0xFF];
 
 	return crc^0xffffffff;
@@ -116,7 +116,7 @@ void Flash_unlock(void){
 /**********************************************************************************************
 *																	Flash_sect_erase
 ***********************************************************************************************/
-void Flash_sect_erase(uint8_t numsect,uint8_t count){
+void Flash_sect_erase(uint8_t numsect,uint8_t countsect){
 	uint8_t i;
 	while((FLASH->SR & FLASH_SR_BSY)==FLASH_SR_BSY) {}
 	if(FLASH->SR & FLASH_SR_EOP)	// если EOP установлен в 1 значит erase/program complete
@@ -126,7 +126,7 @@ void Flash_sect_erase(uint8_t numsect,uint8_t count){
 	FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program/erase x32
 	FLASH->CR |=FLASH_CR_SER;																	// флаг  очистки сектора
 														
-	for(i=numsect;i<numsect+count;i++)
+	for(i=numsect;i<numsect+countsect;i++)
 		{
 			FLASH->CR &= ~FLASH_CR_SNB;														// очистим биты SNB[3:7] 
 			FLASH->CR|=(uint32_t)(i<<3);													// запишем номер сектора для erase
@@ -202,7 +202,7 @@ uint8_t checkflash_erase(uint32_t start_addr,uint32_t byte){
 /**********************************************************************************************
 *			Функция  ожидания прошивки и принятия  ее по CAN сети
 ***********************************************************************************************/
-void Bootloader_upd_firmware(uint16_t count){
+void Bootloader_upd_firmware(uint16_t countflag){
 
 	uint8_t flag,n;
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -267,11 +267,22 @@ void Bootloader_upd_firmware(uint16_t count){
 		CAN_Data_TX.Data[1]='g';								// GET_DATA!
 		CAN_Transmit_DataFrame(&CAN_Data_TX);
 		
-		while(write_flashflag==0) {}
+		SysTick->LOAD=(2500000);
+		
+		while(write_flashflag==0) 
+		{
+			if(GPIOF->IDR & GPIO_IDR_IDR_7)
+				GPIOF->BSRRH=GPIO_BSRR_BS_7;
+			else
+				GPIOF->BSRRL=GPIO_BSRR_BS_7;
+			SysTick->VAL=0;
+			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
+				
+		}
 			
 		// Запишем в сектор FLAG_STATUS флаг 0xA3 по адресу  (FLAG_STATUS_SECTOR+count) стирать предварительно не будем так как там 0xFF
 			flag=0xA3;	
-			Flash_prog((uint8_t*)&flag,(uint8_t*)(FLAG_STATUS_SECTOR+count),1,1);	// 1 байт в режиме x8
+			Flash_prog((uint8_t*)&flag,(uint8_t*)(FLAG_STATUS_SECTOR+countflag),1,1);	// 1 байт в режиме x8
 			// Сделаем RESET 
 			NVIC_SystemReset();
 
@@ -319,17 +330,19 @@ int main (void) {
 		
 		*/
 	// проверим флаг  в секторе FLAG_STATUS во флэш.
-	count=1;
+	count=0;
 	while(*(uint8_t*)(FLAG_STATUS_SECTOR+count)!=0xFF)		// Перебираем байты пока не дойдем до неписанного поля 0xFF 
 	{
 		count++;
-		if(count>=0x4000)
+		if(count>=0x3FFF)
 		{
+			count=0;
+			Flash_sect_erase(1,1);
 			break;
 			
 		}
 	}
-		flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
+	flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count) // Читаем значение флага на 1 адресс меньше чистого поля.
 	
 	if(flag==0xA7)	
 	{		// установлен флаг обновления firmware равный 0xA7
