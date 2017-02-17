@@ -267,16 +267,16 @@ void Bootloader_upd_firmware(uint16_t countflag){
 		CAN_Data_TX.Data[1]='g';								// GET_DATA!
 		CAN_Transmit_DataFrame(&CAN_Data_TX);
 		
-		SysTick->LOAD=(2500000);
+		//SysTick->LOAD=(2500000);
 		
 		while(write_flashflag==0) 
 		{
-			if(GPIOF->IDR & GPIO_IDR_IDR_7)
+			/*if(GPIOF->IDR & GPIO_IDR_IDR_7)
 				GPIOF->BSRRH=GPIO_BSRR_BS_7;
 			else
 				GPIOF->BSRRL=GPIO_BSRR_BS_7;
 			SysTick->VAL=0;
-			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
+			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}*/
 				
 		}
 			

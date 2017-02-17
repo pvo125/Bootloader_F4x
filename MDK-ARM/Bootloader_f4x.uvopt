@@ -165,9 +165,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>197</LineNumber>
+          <LineNumber>385</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134219480</Address>
+          <Address>134219964</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -176,55 +176,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\197</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>199</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134219490</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\199</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>347</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134219900</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\347</Expression>
-        </Bp>
-        <Bp>
-          <Number>3</Number>
-          <Type>0</Type>
-          <LineNumber>336</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134219860</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\336</Expression>
+          <Expression>\\Bootloader_f4x\../user/main.c\385</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -245,7 +197,7 @@
         <Mm>
           <WinNumber>2</WinNumber>
           <SubType>0</SubType>
-          <ItemText>0xD0000000</ItemText>
+          <ItemText>0x08008000</ItemText>
         </Mm>
       </MemoryWindow2>
       <Tracepoint>
@@ -334,10 +286,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>26</ColumnNumber>
+      <ColumnNumber>60</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>165</TopLine>
-      <CurrentLine>270</CurrentLine>
+      <TopLine>258</TopLine>
+      <CurrentLine>357</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\user\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
@@ -446,10 +398,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>27</ColumnNumber>
+      <ColumnNumber>14</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>46</TopLine>
-      <CurrentLine>73</CurrentLine>
+      <TopLine>292</TopLine>
+      <CurrentLine>310</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\user\bxCAN\CAN.c</PathWithFileName>
       <FilenameWithoutPath>CAN.c</FilenameWithoutPath>

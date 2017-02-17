@@ -291,14 +291,19 @@ void CAN_RXProcess1(void){
 				CAN_Data_TX.DLC=2;
 				CAN_Data_TX.Data[0]=NETNAME_INDEX;
 				CAN_Data_TX.Data[1]='g';								// GET_DATA!
-				CAN_Transmit_DataFrame(&CAN_Data_TX);	
+				CAN_Transmit_DataFrame(&CAN_Data_TX);
+				
+				if(GPIOF->IDR & GPIO_IDR_IDR_7)
+					GPIOF->BSRRH=GPIO_BSRR_BS_7;
+				else
+					GPIOF->BSRRL=GPIO_BSRR_BS_7;	
 			}
-			else if((size_firmware-countbytes)!=4)
+			else if((size_firmware-countbytes)>4)
 			{
 				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),((size_firmware-countbytes)/4+1),4);
 				countbytes+=(size_firmware-countbytes);
 			}
-			else if((size_firmware-countbytes)==4)
+			else if((size_firmware-countbytes)<=4)
 			{
 				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),1,4);
 				countbytes+=4;
