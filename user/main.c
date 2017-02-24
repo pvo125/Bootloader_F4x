@@ -160,9 +160,9 @@ void Flash_prog(uint8_t * src,uint8_t * dst,uint32_t nbyte,uint8_t psize){
 		case 2:
 			FLASH->CR |= FLASH_CR_PSIZE_0;			// 01 program x16
 			FLASH->CR |=FLASH_CR_PG;	
-			for(i=0;i<nbyte;i++)
+			for(i=0;i<nbyte;i+=2)
 			{
-				*(uint16_t*)(dst+i*2)=*(uint16_t*)(src+i*2);
+				*(uint16_t*)(dst+i)=*(uint16_t*)(src+i);
 				while((FLASH->SR & FLASH_SR_EOP)!=FLASH_SR_EOP) {}
 				FLASH->SR=FLASH_SR_EOP;	
 			}
@@ -170,9 +170,9 @@ void Flash_prog(uint8_t * src,uint8_t * dst,uint32_t nbyte,uint8_t psize){
 		case 4:
 			FLASH->CR |= FLASH_CR_PSIZE_1;			// 10 program x32
 			FLASH->CR |=FLASH_CR_PG;	
-			for(i=0;i<nbyte;i++)
+			for(i=0;i<nbyte;i+=4)
 			{
-				*(uint32_t*)(dst+i*4)=*(uint32_t*)(src+i*4);
+				*(uint32_t*)(dst+i)=*(uint32_t*)(src+i);
 				while((FLASH->SR & FLASH_SR_EOP)!=FLASH_SR_EOP) {}
 				FLASH->SR=FLASH_SR_EOP;
 		  }
@@ -267,23 +267,19 @@ void Bootloader_upd_firmware(uint16_t countflag){
 		CAN_Data_TX.Data[1]='g';								// GET_DATA!
 		CAN_Transmit_DataFrame(&CAN_Data_TX);
 		
-		//SysTick->LOAD=(2500000);
-		
+			
 		while(write_flashflag==0) 
 		{
-			/*if(GPIOF->IDR & GPIO_IDR_IDR_7)
-				GPIOF->BSRRH=GPIO_BSRR_BS_7;
-			else
-				GPIOF->BSRRL=GPIO_BSRR_BS_7;
-			SysTick->VAL=0;
-			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}*/
-				
+							
 		}
 			
 		// Запишем в сектор FLAG_STATUS флаг 0xA3 по адресу  (FLAG_STATUS_SECTOR+count) стирать предварительно не будем так как там 0xFF
 			flag=0xA3;	
 			Flash_prog((uint8_t*)&flag,(uint8_t*)(FLAG_STATUS_SECTOR+countflag),1,1);	// 1 байт в режиме x8
 			// Сделаем RESET 
+			SysTick->LOAD=2500000*6;
+			SysTick->VAL=0;
+			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
 			NVIC_SystemReset();
 
 
@@ -360,7 +356,7 @@ int main (void) {
 			// Стирание секторов для записи  в рабочую часть флэш (со 2 по 7)	
 				Flash_sect_erase(NAMBER_WORK_SECTOR,6);
 			 // Запись обновленной прошивки с адреса FIRM_UPD_SECTOR в FIRM_WORK_SECTOR 
-				Flash_prog((uint8_t*)FIRM_UPD_SECTOR,(uint8_t*)FIRM_WORK_SECTOR,bin_size,4);	
+				Flash_prog((uint8_t*)FIRM_UPD_SECTOR,(uint8_t*)FIRM_WORK_SECTOR,(bin_size+4),4);	
 			 
 			// Запишем в сектор FLAG_STATUS флаг 0xA3 по адресу  (FLAG_STATUS_SECTOR+count) стирать предварительно не будем так как там 0xFF
 			flag=0xA3;	

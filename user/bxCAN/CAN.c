@@ -285,7 +285,7 @@ void CAN_RXProcess1(void){
 		case 6:	//(id=273 SET_DATA_FIRMWARE)
 			if((size_firmware-countbytes)>=8)
 			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),2,4);		
+				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),8,4);		
 				countbytes+=8;
 				CAN_Data_TX.ID=(NETNAME_INDEX<<8)|0x72;
 				CAN_Data_TX.DLC=2;
@@ -293,21 +293,20 @@ void CAN_RXProcess1(void){
 				CAN_Data_TX.Data[1]='g';								// GET_DATA!
 				CAN_Transmit_DataFrame(&CAN_Data_TX);
 				
-				if(GPIOF->IDR & GPIO_IDR_IDR_7)
-					GPIOF->BSRRH=GPIO_BSRR_BS_7;
-				else
-					GPIOF->BSRRL=GPIO_BSRR_BS_7;	
+				if((countbytes%240)==0)
+				{	
+					if(GPIOF->IDR & GPIO_IDR_IDR_7)
+						GPIOF->BSRRH=GPIO_BSRR_BS_7;
+					else
+						GPIOF->BSRRL=GPIO_BSRR_BS_7;	
+				}
 			}
-			else if((size_firmware-countbytes)>4)
+			else 
 			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),((size_firmware-countbytes)/4+1),4);
+				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),(size_firmware-countbytes),4);
 				countbytes+=(size_firmware-countbytes);
 			}
-			else if((size_firmware-countbytes)<=4)
-			{
-				Flash_prog(&CAN_Data_RX[1].Data[0],(uint8_t*)(FIRM_WORK_SECTOR+countbytes),1,4);
-				countbytes+=4;
-			}				
+			
 			if(size_firmware==countbytes)	
 			{
 				
