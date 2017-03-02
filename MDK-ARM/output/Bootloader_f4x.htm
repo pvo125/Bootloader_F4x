@@ -3,9 +3,9 @@
 <title>Static Call Graph - [.\output\Bootloader_f4x.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\output\Bootloader_f4x.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5.03 [Build 76]: Last Updated: Fri Feb 24 17:11:54 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5.03 [Build 76]: Last Updated: Wed Mar 01 23:35:11 2017
 <BR><P>
-<H3>Maximum Stack Usage =         60 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =         68 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; Bootloader_upd_firmware &rArr; bxCAN_Init &rArr; GPIO_PinAFConfig
 <P>
@@ -241,7 +241,7 @@ Global Symbols
 <P><STRONG><a name="[ae]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[74]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 60 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 68 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; Bootloader_upd_firmware &rArr; bxCAN_Init &rArr; GPIO_PinAFConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;exit
@@ -608,10 +608,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[75]"></a>main</STRONG> (Thumb, 248 bytes, Stack size 8 bytes, main.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = main &rArr; Bootloader_upd_firmware &rArr; bxCAN_Init &rArr; GPIO_PinAFConfig
+<P><STRONG><a name="[75]"></a>main</STRONG> (Thumb, 404 bytes, Stack size 16 bytes, main.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 68<LI>Call Chain = main &rArr; Bootloader_upd_firmware &rArr; bxCAN_Init &rArr; GPIO_PinAFConfig
 </UL>
-<BR>[Calls]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Bootloader_upd_firmware
+<BR>[Calls]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
+<LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Bootloader_upd_firmware
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_prog
 <LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_sect_erase
 <LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_unlock
@@ -661,6 +662,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = GPIO_Init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bxCAN_Init
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Bootloader_upd_firmware
 </UL>
 
@@ -897,7 +899,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
 </UL>
 
-<P><STRONG><a name="[85]"></a>NVIC_SystemReset</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, main.o(.text))
+<P><STRONG><a name="[85]"></a>NVIC_SystemReset</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, main.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Bootloader_upd_firmware
 </UL>

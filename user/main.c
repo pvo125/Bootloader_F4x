@@ -290,8 +290,9 @@ int main (void) {
 	uint32_t bin_size,crc;
 	uint8_t flag;
 	uint16_t count;
+	GPIO_InitTypeDef 		GPIO_InitStruct;
 	
-	CANTX_TypeDef CAN_Data_TX;
+	
 	void(*pApplication)(void);		// указатель на функцию запуска приложения
 	/*
 	0x0800 0000 - 0x0800 3FFF   загрузчик						1 сектор флэш
@@ -325,6 +326,20 @@ int main (void) {
 		}
 		
 		*/
+	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN;
+
+	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_IN;
+	GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_Pin=GPIO_Pin_4;
+	GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_UP;
+	GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
+	GPIO_Init(GPIOE,&GPIO_InitStruct);
+
+	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
+		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
+		SysTick->CTRL |=SysTick_CTRL_ENABLE_Msk;
+		SysTick->LOAD=(2500000*6);
+		
 	// проверим флаг  в секторе FLAG_STATUS во флэш.
 	count=0;
 	while(*(uint8_t*)(FLAG_STATUS_SECTOR+count)!=0xFF)		// Перебираем байты пока не дойдем до неписанного поля 0xFF 
@@ -338,7 +353,20 @@ int main (void) {
 			
 		}
 	}
-	flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);   // значение по адресу (FLAG_STATUS_SECTOR+count) // Читаем значение флага на 1 адресс меньше чистого поля.
+	if(count==0)
+		flag=*(uint16_t*)(FLAG_STATUS_SECTOR);   // значение по адресу (FLAG_STATUS_SECTOR).
+	else
+		flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);// значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
+	
+	SysTick->VAL=0;
+	if(!(GPIOE->IDR&GPIO_IDR_IDR_4))
+	{
+		while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
+		SysTick->VAL=0;
+		while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}		
+		if(!(GPIOE->IDR & GPIO_IDR_IDR_4))
+			Bootloader_upd_firmware(count);	
+	}
 	
 	if(flag==0xA7)	
 	{		// установлен флаг обновления firmware равный 0xA7
