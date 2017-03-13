@@ -165,9 +165,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>405</LineNumber>
+          <LineNumber>339</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220178</Address>
+          <Address>134219860</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -176,23 +176,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\405</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>402</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134220170</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\STM32_ГЇГ°Г®ГҐГЄГІГ»\Bootloader_F4x\user\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Bootloader_f4x\../user/main.c\402</Expression>
+          <Expression>\\Bootloader_f4x\../user/main.c\339</Expression>
         </Bp>
       </Breakpoint>
       <MemoryWindow1>
@@ -257,7 +241,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>193</TopLine>
+      <TopLine>181</TopLine>
       <CurrentLine>191</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates\arm\startup_stm32f429_439xx.s</PathWithFileName>
@@ -297,8 +281,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>372</TopLine>
-      <CurrentLine>371</CurrentLine>
+      <TopLine>317</TopLine>
+      <CurrentLine>339</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\user\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
@@ -407,10 +391,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>42</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>73</TopLine>
-      <CurrentLine>301</CurrentLine>
+      <TopLine>223</TopLine>
+      <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\user\bxCAN\CAN.c</PathWithFileName>
       <FilenameWithoutPath>CAN.c</FilenameWithoutPath>

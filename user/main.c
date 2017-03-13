@@ -395,8 +395,9 @@ int main (void) {
 	else if(flag==0xA3)						 
 	{				// установлен флаг 0xA3 запуск приложения		
 		// по адресу FIRM_WORK_SECTOR+0x1C считаем 4 байта размера прошивки 
-		bin_size=*((uint32_t*)(FIRM_WORK_SECTOR+0x1C));	
-		crc=crc32_check((const uint8_t*)FIRM_WORK_SECTOR,bin_size);
+		bin_size=*((uint32_t*)(FIRM_WORK_SECTOR+0x1C));
+		if((bin_size>0)&&(bin_size<0x100000))
+			crc=crc32_check((const uint8_t*)FIRM_WORK_SECTOR,bin_size);
 		/* Сравниваем полученный crc с рабочего сектора  c тем что лежит FIRM_UPD_SECTOR+bin_size и пришло при обновлении */
 		if(*(uint32_t*)(FIRM_WORK_SECTOR+bin_size)==crc)
 			{			// Если прошивка цела делаем запуск pApplication() с рабочего сектора
