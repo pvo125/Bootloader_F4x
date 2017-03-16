@@ -10,8 +10,8 @@ volatile int size_firmware;
 volatile uint8_t write_flashflag=0;
 
 #define FLAG_STATUS_SECTOR	0x08004000		//sector 1	
-#define FIRM_WORK_SECTOR 		0x08008000			//sector2			firmware work base
-#define FIRM_UPD_SECTOR 		0x08080000			//sector12		firmware update base
+#define FIRM_WORK_SECTOR 		0x08008000		//sector2			firmware work base
+#define FIRM_UPD_SECTOR 		0x08080000		//sector12		firmware update base
 
 #define NAMBER_WORK_SECTOR			2						//	первый work сектор 				2
 																						//  последний work сектор   	7
@@ -37,28 +37,21 @@ void bxCAN_Init(void){
 	RCC->APB1ENR|=RCC_APB1ENR_CAN1EN;
 	/*Настройка выводов CAN  CAN1_TX=PB9   CAN1_RX=PB8  */
 	
-	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_AF;//GPIO_InitStruct. Alternate=GPIO_AF9_CAN1;
-	GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;//GPIO_InitStruct.Mode=GPIO_MODE_AF_PP;
-	GPIO_InitStruct.GPIO_Pin=CAN1_TX|CAN1_RX;//GPIO_InitStruct.Pin=CAN1_TX|CAN1_RX;
-	GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_UP;//GPIO_InitStruct.Pull=GPIO_PULLUP;
-	GPIO_InitStruct.GPIO_Speed=GPIO_Fast_Speed;//GPIO_InitStruct.Speed=GPIO_SPEED_FAST;
+	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_AF;
+	GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_Pin=CAN1_TX|CAN1_RX;
+	GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_UP;
+	GPIO_InitStruct.GPIO_Speed=GPIO_Fast_Speed;
 	GPIO_Init(CAN1_PORT,&GPIO_InitStruct);
 	
 	GPIO_PinAFConfig(CAN1_PORT,CAN1_TX_Source,GPIO_AF_CAN1);
 	GPIO_PinAFConfig(CAN1_PORT,CAN1_RX_Source,GPIO_AF_CAN1);
 	
-	//CAN1->RF1R|=CAN_RF0R_RFOM0;
+	/*Release FIFO*/
 	CAN1->RF1R|=CAN_RF1R_RFOM1;
-	
 	/*Настройка NVIC для bxCAN interrupt*/
-	//NVIC_SetPriority( CAN1_RX0_IRQn, 1);
 	NVIC_SetPriority(CAN1_RX1_IRQn,  1);
-	
 
-//			Init mode				//
-
-	//CAN1->MCR|=CAN_MCR_RESET;
-	
 	/*Exit SLEEP mode*/
 	CAN1->MCR&=~CAN_MCR_SLEEP;
 	/*Enter Init mode bxCAN*/
@@ -72,49 +65,27 @@ void bxCAN_Init(void){
 	CAN1->MCR&=~CAN_MCR_NART;			// автоматич. ретрансляция включена
 	CAN1->MCR&=~CAN_MCR_RFLM;
 	CAN1->MCR&=~CAN_MCR_TXFP;	
-	/*Тестовый режиим работы выключен CAN  SILM=0  LBKM=0 */
 	
+	/*Тестовый режиим работы выключен CAN  SILM=0  LBKM=0 */
 	CAN1->BTR&=~CAN_BTR_LBKM;	
 	CAN1->BTR&=~CAN_BTR_SILM;	
 
 	CAN1->BTR|=CAN_BTR_BRP&29;														/* tq=(29+1)*tPCLK1=2/3 uS   */
 	CAN1->BTR|=CAN_BTR_SJW_0;															/*SJW[1:0]=1  (SJW[1:0]+1)*tCAN=tRJW PROP_SEG =+- 2* tq	*/		
 	
-	//CAN1->BTR&=~CAN_BTR_TS1_0;
-	CAN1->BTR|=CAN_BTR_TS1_2;													/* TS1[3:0]=0X07 */ //tBS1=tq*(7+1)=8*tq
-	
-	//CAN1->BTR&=~CAN_BTR_TS2_1;
-	//CAN1->BTR|=CAN_BTR_TS2_0;													/* TS2[2:0]=0X02 */ //tBS2=tq*(2+1)=3*tq
-	
+	CAN1->BTR|=CAN_BTR_TS1_2;													    /* TS1[3:0]=0X07 */ //tBS1=tq*(7+1)=8*tq
+																												/* TS2[2:0]=0X02 */ //tBS2=tq*(2+1)=3*tq
 																												// | 1tq | 		8tq 				 |  3tq		| 		T=12*tq=12*2/3=8uS f=125kHz
 																												// |-----------------------|---------|		
 																												// 								Sample point = 75%		
 		/*Init filters*/
-	
-	/*CAN1->FMR|=	CAN_FMR_FINIT;																		// Filter Init Mode
-	CAN1->FM1R|=CAN_FM1R_FBM0|CAN_FM1R_FBM1|CAN_FM1R_FBM2;  				// Filters bank 0 1 2  mode ID List
-	CAN1->FS1R&=~(CAN_FS1R_FSC0|CAN_FS1R_FSC1|CAN_FS1R_FSC2);				// Filters bank 0 1 2  scale 16 bits
-	CAN1->FFA1R&=~(CAN_FFA1R_FFA0|CAN_FFA1R_FFA1|CAN_FFA1R_FFA2);		// Filters bank 0 1 2  FIFO0		*/
-		
+			
 	CAN1->FM1R|=CAN_FM1R_FBM3|CAN_FM1R_FBM4|CAN_FM1R_FBM5;					// Filters bank 3 4 5  mode ID List		
 	CAN1->FS1R&=~(CAN_FS1R_FSC3|CAN_FS1R_FSC4|CAN_FS1R_FSC5);				// Filters bank 3 4 5  scale 16 bits	
 	CAN1->FFA1R|=CAN_FFA1R_FFA3|CAN_FFA1R_FFA4|CAN_FFA1R_FFA5;			// Filters bank 3 4 5 FIFO1		
 
 	/*ID filters */
-  //FOFO0
-	/*CAN1->sFilterRegister[0].FR1=0x10105000;	//Filters bank 0 fmi 00 ID=0x280 IDE=0 RTR=0	// 
-																						//							 fmi 01 ID=0x080 IDE=0 RTR=1	// GET_RTC(remote) 
-	CAN1->sFilterRegister[0].FR2=0x10505020;	//Filters bank 0 fmi 02 ID=0x281 IDE=0 RTR=0	//
-																						//							 fmi 03 ID=0x082 IDE=0 RTR=1	// GET_TIMER_DATA(remote)
-	CAN1->sFilterRegister[1].FR1=0x50505040;	//Filters bank 1 fmi 04 ID=0x282 IDE=0 RTR=0	// 
-																						//							 fmi 05 ID=0x282 IDE=0 RTR=1	// ENABLE_TIMER
-	CAN1->sFilterRegister[1].FR2=0x50705060;	//Filters bank 1 fmi 06 ID=0x283 IDE=0 RTR=0	// SET_TIMER_DATA
-																						//							 fmi 07 ID=0x283 IDE=0 RTR=1	// DISABLE_TIMER
-	CAN1->sFilterRegister[2].FR1=0x50905080;	//Filters bank 2 fmi 08 ID=0x284 IDE=0 RTR=0	// GET_ALARM_A
-																						//							 fmi 09 ID=0x284 IDE=0 RTR=1	// ENABLE ALARM_A	
-	CAN1->sFilterRegister[2].FR2=0x50B050A0;	//Filters bank 2 fmi 10 ID=0x285 IDE=0 RTR=0	// SET_ALARM_A
-																						//							 fmi 11 ID=0x285 IDE=0 RTR=1	// DISABLE ALARM_A			*/	
-	//FIFO1  
+  //FIFO1  
 	CAN1->sFilterRegister[3].FR1=0x50D050C0;	//Filters bank 3 fmi 00 ID=0x286 IDE=0 RTR=0	// GET_ALARM_B
 																						//							 fmi 01 ID=0x286 IDE=0 RTR=1	// ENABLE ALARM_B
 	CAN1->sFilterRegister[3].FR2=0x50F050E0;	//Filters bank 3 fmi 02 ID=0x287 IDE=0 RTR=0	// SET_ALARM_B
@@ -131,21 +102,17 @@ void bxCAN_Init(void){
 																						//							 fmi 11 ID=0x088 IDE=0 RTR=1	// 	GET_NET_NAME																			
 	
 	/* Filters activation  */	
-	CAN1->FA1R|=/*CAN_FFA1R_FFA0|CAN_FFA1R_FFA1|CAN_FFA1R_FFA2|*/
-							CAN_FFA1R_FFA3|CAN_FFA1R_FFA4|CAN_FFA1R_FFA5;		//
+	CAN1->FA1R|=CAN_FFA1R_FFA3|CAN_FFA1R_FFA4|CAN_FFA1R_FFA5;		
 							
 	/*Exit filters init mode*/
 	CAN1->FMR&=	~CAN_FMR_FINIT;
 	
 	/*Разрешение прерываний FIFO0 FIFO1*/
-	CAN1->IER|=/*CAN_IER_FMPIE0|*/CAN_IER_FMPIE1;
-
+	CAN1->IER|=CAN_IER_FMPIE1;
 //	 Exit Init mode bxCAN	
-
 	CAN1->MCR&=~CAN_MCR_INRQ;  														/*Initialization Request */	
 	while((CAN1->MSR&CAN_MSR_INAK)==CAN_MSR_INAK)		{}   /*while Initialization Acknowledge*/		
-
-	//NVIC_EnableIRQ(CAN1_RX0_IRQn);
+	
 	NVIC_EnableIRQ(CAN1_RX1_IRQn);		
 }
 /*****************************************************************************************************************
@@ -234,8 +201,8 @@ void CAN_Receive_IRQHandler(uint8_t FIFONumber){
 			CAN1->IER&=~CAN_IER_FMPIE1;	
 		else
 			CAN1->IER&=~CAN_IER_FMPIE0;
-	/*Release FIFO*/
 	
+		/*Release FIFO*/
 	if(FIFONumber)
 		CAN1->RF1R|=CAN_RF1R_RFOM1;
 	else	
@@ -253,24 +220,11 @@ void CAN_RXProcess1(void){
 	uint32_t crc;
 	
 	switch(CAN_Data_RX[1].FMI) {
-		case 0://(id=286 data get alarm_b)
-		//
-		break;
-		case 1://(id=286 remote enable alarm_b)
-		//
-		break;
-		case 2://(id=287 data set alarm_b)
-		//
-		break;
-		case 3://(id=287 remote disable alarm_b)
-		//
-		break;
-		
 		case 4:	//(id=271 SET_FIRMWARE_SIZE)
-			// если получили запрос на обновление 
+		// если получили запрос на обновление 
 		// * вытащить из CAN_Data_RX[1].Data[0]...CAN_Data_RX[1].Data[3] размер прошивки и записать в size_firmware;
 		// * разблокировать flash 
-		// * стереть сектора второй половины flash 
+		// * стереть сектора flash 
 		// * отправить подтверждение по CAN GET_DATA
 		countbytes=0;
 		size_firmware=0;
