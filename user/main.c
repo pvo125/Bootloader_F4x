@@ -353,11 +353,7 @@ int main (void) {
 			
 		}
 	}
-	if(count==0)
-		flag=*(uint16_t*)(FLAG_STATUS_SECTOR);   // значение по адресу (FLAG_STATUS_SECTOR).
-	else
-		flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);// значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
-	
+		
 	// Если при включении зажата кнопка на PE4 то после паузы с проверкой на помеху запук функции обновления Bootloader_upd_firmware()
 	SysTick->VAL=0;
 	if(!(GPIOE->IDR&GPIO_IDR_IDR_4))
@@ -368,6 +364,11 @@ int main (void) {
 		if(!(GPIOE->IDR & GPIO_IDR_IDR_4))
 			Bootloader_upd_firmware(count);	
 	}
+	
+	if(count==0)
+		flag=*(uint8_t*)(FLAG_STATUS_SECTOR);   // значение по адресу (FLAG_STATUS_SECTOR).
+	else
+		flag=*(uint8_t*)(FLAG_STATUS_SECTOR+count-1);// значение по адресу (FLAG_STATUS_SECTOR+count-1) // Читаем значение флага на 1 адресс меньше чистого поля.
 	
 	if(flag==0xA7)	
 	{		// установлен флаг обновления firmware равный 0xA7
