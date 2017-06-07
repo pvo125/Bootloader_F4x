@@ -12,6 +12,9 @@
 
 #define CAN1_PORT GPIOB
 
+#define SWPOWER_LCD_PIN		GPIO_Pin_6
+#define SWPOWER_LCD_PORT	GPIOB
+
 #define OPEN429 	 0x1
 #define STM32f429  0x2
 #define F103_KIT	 0x3

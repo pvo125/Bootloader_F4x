@@ -326,7 +326,8 @@ int main (void) {
 		*/
 		
 		// Настройка PE4 для принудительного запуска обновления из бутлоадера Bootloader_upd_firmware()	
-	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN;
+	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN|RCC_AHB1ENR_GPIOBEN;
+
 
 	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_IN;
 	GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
@@ -334,7 +335,17 @@ int main (void) {
 	GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_UP;
 	GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
 	GPIO_Init(GPIOE,&GPIO_InitStruct);
-
+/********************************************************************/
+/*								SWPOWER_LCD 		  																*/
+/********************************************************************/			
+		GPIO_InitStruct.GPIO_Pin=SWPOWER_LCD_PIN;
+		GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
+		GPIO_InitStruct.GPIO_Mode=GPIO_Mode_OUT;
+		GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
+		GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_NOPULL;
+		GPIO_Init(SWPOWER_LCD_PORT,&GPIO_InitStruct);
+		
+		GPIO_SetBits(SWPOWER_LCD_PORT, SWPOWER_LCD_PIN);		// Включаем  LDO для LCD + CAN transsiver
 	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
 		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
 		SysTick->CTRL |=SysTick_CTRL_ENABLE_Msk;
