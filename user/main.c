@@ -206,12 +206,12 @@ void Bootloader_upd_firmware(uint16_t countflag){
 		// PF7 выход push-pull без подтяжки для моргания светодиодом
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF	 ,ENABLE);
 		
-		GPIO_InitStruct.GPIO_Pin=GPIO_Pin_7;
+		GPIO_InitStruct.GPIO_Pin=LEDPIN;
 		GPIO_InitStruct.GPIO_Mode=GPIO_Mode_OUT;
 		GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_NOPULL;
 		GPIO_InitStruct.GPIO_Speed=GPIO_Low_Speed;
-		GPIO_Init(GPIOF,&GPIO_InitStruct);	
+		GPIO_Init(LEDPORT,&GPIO_InitStruct);	
 	
 	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
 		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
@@ -228,10 +228,10 @@ void Bootloader_upd_firmware(uint16_t countflag){
 			CAN_Data_TX.Data[0]=NETNAME_INDEX;
 			CAN_Transmit_DataFrame(&CAN_Data_TX);
 			
-			if(GPIOF->IDR & GPIO_IDR_IDR_7)
-				GPIOF->BSRRH=GPIO_BSRR_BS_7;
+			if(LEDPORT->IDR & LEDPIN_IDR)
+				LEDPORT->BSRRH=LEDPIN_BSSR;
 			else
-				GPIOF->BSRRL=GPIO_BSRR_BS_7;
+				LEDPORT->BSRRL=LEDPIN_BSSR;
 			
 			// Пауза 1,5 секунды
 			SysTick->LOAD=(2500000*6);
@@ -239,7 +239,7 @@ void Bootloader_upd_firmware(uint16_t countflag){
 			while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
 		}
 		// Если вышли из while значит пришел ответ и в прерывании было принято size_firmware и  установлено get_firmware_size=0
-		GPIOF->BSRRH=GPIO_BSRR_BS_7;     // Гасим светодиод               
+		LEDPORT->BSRRH=LEDPIN_BSSR;     // Гасим светодиод               
 		
 		// Подготовим флэш для принятия данных и записи
 		Flash_unlock();
@@ -325,16 +325,16 @@ int main (void) {
 		
 		*/
 		
-		// Настройка PE4 для принудительного запуска обновления из бутлоадера Bootloader_upd_firmware()	
+		// Настройка PE2 для принудительного запуска обновления из бутлоадера Bootloader_upd_firmware()	
 	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN|RCC_AHB1ENR_GPIOBEN|RCC_AHB1ENR_GPIOIEN;
 
 
 	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_IN;
 	GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Pin=BOOT_PIN;
+	GPIO_InitStruct.GPIO_Pin=BOOTPIN;
 	GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_UP;
 	GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
-	GPIO_Init(BOOT_PORT,&GPIO_InitStruct);
+	GPIO_Init(BOOTPORT,&GPIO_InitStruct);
 /********************************************************************/
 /*								CAN_SWITCH  		  																*/
 /********************************************************************/			
@@ -366,14 +366,14 @@ int main (void) {
 		}
 	}
 		
-	// Если при включении зажата кнопка на PE4 то после паузы с проверкой на помеху запук функции обновления Bootloader_upd_firmware()
+	// Если при включении зажата кнопка на PE2 то после паузы с проверкой на помеху запуcк функции обновления Bootloader_upd_firmware()
 	SysTick->VAL=0;
-	if(!(GPIOE->IDR&GPIO_IDR_IDR_4))
+	if(!(BOOTPORT->IDR & BOOTPIN_IDR))
 	{
 		while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}
 		SysTick->VAL=0;
 		while(!(SysTick->CTRL&SysTick_CTRL_COUNTFLAG_Msk)){}		
-		if(!(GPIOE->IDR & GPIO_IDR_IDR_4))
+		if(!(BOOTPORT->IDR & BOOTPIN_IDR))
 			Bootloader_upd_firmware(count);	
 	}
 	

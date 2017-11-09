@@ -19,8 +19,14 @@
 #define CAN_SWITCH_PIN		GPIO_Pin_7
 #define CAN_SWITCH_PORT		GPIOI
 
-#define BOOT_PIN		GPIO_Pin_2;
-#define BOOT_PORT		GPIOE
+
+#define LEDPIN						  GPIO_Pin_7	
+#define LEDPIN_IDR					GPIO_IDR_IDR_7
+#define LEDPIN_BSSR					GPIO_BSRR_BS_7
+#define LEDPORT						  GPIOF
+#define BOOTPIN		  				GPIO_Pin_2
+#define BOOTPIN_IDR		  		GPIO_IDR_IDR_2
+#define BOOTPORT					  GPIOE
 
 #define OPEN429 	 0x1
 #define STM32f429  0x2

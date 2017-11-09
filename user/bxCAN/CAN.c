@@ -249,10 +249,10 @@ void CAN_RXProcess1(void){
 				
 				if((countbytes%240)==0)
 				{	
-					if(GPIOF->IDR & GPIO_IDR_IDR_7)
-						GPIOF->BSRRH=GPIO_BSRR_BS_7;
+					if(LEDPORT->IDR & LEDPIN_IDR)
+						LEDPORT->BSRRH=LEDPIN_BSSR;
 					else
-						GPIOF->BSRRL=GPIO_BSRR_BS_7;	
+						LEDPORT->BSRRL=LEDPIN_BSSR;	
 				}
 			}
 			else 
