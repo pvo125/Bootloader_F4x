@@ -12,8 +12,12 @@
 
 #define CAN1_PORT GPIOB
 
+
 #define SWPOWER_LCD_PIN		GPIO_Pin_6
 #define SWPOWER_LCD_PORT	GPIOB
+
+#define CAN_SWITCH_PIN		GPIO_Pin_7
+#define CAN_SWITCH_PORT		GPIOI
 
 #define BOOT_PIN		GPIO_Pin_2;
 #define BOOT_PORT		GPIOE

@@ -326,7 +326,7 @@ int main (void) {
 		*/
 		
 		// Настройка PE4 для принудительного запуска обновления из бутлоадера Bootloader_upd_firmware()	
-	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN|RCC_AHB1ENR_GPIOBEN;
+	RCC->AHB1ENR|=RCC_AHB1ENR_GPIOEEN|RCC_AHB1ENR_GPIOBEN|RCC_AHB1ENR_GPIOIEN;
 
 
 	GPIO_InitStruct.GPIO_Mode=GPIO_Mode_IN;
@@ -336,16 +336,17 @@ int main (void) {
 	GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
 	GPIO_Init(BOOT_PORT,&GPIO_InitStruct);
 /********************************************************************/
-/*								SWPOWER_LCD 		  																*/
+/*								CAN_SWITCH  		  																*/
 /********************************************************************/			
-		GPIO_InitStruct.GPIO_Pin=SWPOWER_LCD_PIN;
+		GPIO_InitStruct.GPIO_Pin=CAN_SWITCH_PIN;
 		GPIO_InitStruct.GPIO_Speed=GPIO_Speed_2MHz;
 		GPIO_InitStruct.GPIO_Mode=GPIO_Mode_OUT;
 		GPIO_InitStruct.GPIO_OType=GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_PuPd=GPIO_PuPd_NOPULL;
-		GPIO_Init(SWPOWER_LCD_PORT,&GPIO_InitStruct);
+		GPIO_Init(CAN_SWITCH_PORT,&GPIO_InitStruct);
 		
-		GPIO_SetBits(SWPOWER_LCD_PORT, SWPOWER_LCD_PIN);		// Включаем  LDO для LCD + CAN transsiver
+		GPIO_ResetBits(CAN_SWITCH_PORT, CAN_SWITCH_PIN);		// Включаем  CAN transsiver
+	
 	// Настроим SysTick сбросим флаг CLKSOURCE выберем источник тактирования AHB/8
 		SysTick->CTRL &=~SysTick_CTRL_CLKSOURCE_Msk;
 		SysTick->CTRL |=SysTick_CTRL_ENABLE_Msk;
